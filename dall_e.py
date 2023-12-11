@@ -1,9 +1,12 @@
-from PIL import Image as PILImage
-from openai import Image
-import streamlit as st
 import base64
 import io
 
+import streamlit as st
+from openai import OpenAI
+from PIL import Image
+
+
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 prompt_enforcer = "I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS:"
 
 def st_dall_e():
@@ -20,7 +23,7 @@ def st_dall_e():
 
     if st.button("Generate", use_container_width=True, type="primary") and prompt != "":
         with st.spinner("Generating..."):
-            response = Image.create(
+            response = client.images.generate(
                 model="dall-e-3",
                 response_format="b64_json",
                 prompt=prompt,
@@ -31,13 +34,13 @@ def st_dall_e():
             )
             # image_url = response['data'][0]['url']
             # st.image(image_url)
-            st.session_state.base64_image = response['data'][0]['b64_json']
-            st.session_state.revised_prompt = response['data'][0]['revised_prompt']
+            st.session_state.base64_image = response.data[0].b64_json
+            st.session_state.revised_prompt = response.data[0].revised_prompt
 
     if "base64_image" in st.session_state:
         base64_image = st.session_state.base64_image
         image_data = base64.b64decode(base64_image)
-        image = PILImage.open(io.BytesIO(image_data))
+        image = Image.open(io.BytesIO(image_data))
         st.image(image)
         st.write("**Revised prompt**:", st.session_state.revised_prompt)
 
