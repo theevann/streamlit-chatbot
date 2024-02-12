@@ -57,7 +57,7 @@ def print_message(lc_message):
 
 
 def st_chatbot():
-    openai_models = st.sidebar.radio("Select OpenAI model:", ["gpt-3.5-turbo", "gpt-4-1106-preview", "gpt-4-vision-preview"], index=1)
+    openai_models = st.sidebar.radio("Select OpenAI model:", ["gpt-3.5-turbo", "gpt-4-turbo-preview", "gpt-4-1106-preview", "gpt-4-vision-preview"], index=1)
     chatbot.model_name = openai_models
 
     # Initialize chat history
