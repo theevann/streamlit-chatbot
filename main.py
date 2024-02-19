@@ -11,8 +11,10 @@ st.set_page_config(
 )
 
 
-if not check_password():
-    st.stop() 
+# if not check_password():
+#     st.stop() 
+
+openai_api_key = st.sidebar.text_input("OpenAI API Key")
 
 mode = st.sidebar.radio("Select tool:", ["ChatGPT", "DALL·E"])
 
@@ -20,6 +22,6 @@ st.sidebar.write("---")
 
 
 if mode == "ChatGPT":
-    st_chatbot()
+    st_chatbot(openai_api_key)
 else:
-    st_dall_e()
+    st_dall_e(openai_api_key)

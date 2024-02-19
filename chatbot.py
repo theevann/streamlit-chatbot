@@ -1,4 +1,6 @@
 import base64
+
+import openai
 import streamlit as st
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import (
@@ -6,9 +8,6 @@ from langchain.schema import (
     HumanMessage,
     SystemMessage
 )
-
-
-chatbot = ChatOpenAI(openai_api_key=st.secrets["OPENAI_API_KEY"], max_tokens=2048)
 
 
 def encode_image(image_path):
@@ -31,11 +30,14 @@ def generate_response():
     message = AIMessage(content=[full_response])
     st.session_state.messages.append(message)
 
-    for response in chatbot.stream(messages):
-        full_response["text"] += response.content
-        message.content = [full_response]
-        placeholder.markdown(full_response["text"] + "▌")
-    placeholder.markdown(full_response["text"])
+    try:
+        for response in st.session_state.chatbot.stream(messages):
+            full_response["text"] += response.content
+            message.content = [full_response]
+            placeholder.markdown(full_response["text"] + "▌")
+        placeholder.markdown(full_response["text"])
+    except openai.AuthenticationError as e:
+        st.error("Invalid OpenAI API key.")
 
 
 def get_role(lc_message):
@@ -56,9 +58,18 @@ def print_message(lc_message):
                 st.image(lc_message.content[0]["image_url"]["url"])
 
 
-def st_chatbot():
+def st_chatbot(openai_api_key):
+    if openai_api_key == st.secrets["PASSWORD"]:
+        openai_api_key = st.secrets["OPENAI_API_KEY"]
+    elif openai_api_key == "":
+        st.warning("Please enter your OpenAI API key.")
+        st.stop()
+        
+    if ("chatbot" not in st.session_state) or (openai_api_key != st.session_state.chatbot.openai_api_key):
+        st.session_state.chatbot = ChatOpenAI(max_tokens=2048, openai_api_key=openai_api_key)
+                
     openai_models = st.sidebar.radio("Select OpenAI model:", ["gpt-3.5-turbo", "gpt-4-turbo-preview", "gpt-4-1106-preview", "gpt-4-vision-preview"], index=1)
-    chatbot.model_name = openai_models
+    st.session_state.chatbot.model_name = openai_models
 
     # Initialize chat history
     if "messages" not in st.session_state:
@@ -67,7 +78,7 @@ def st_chatbot():
 
     with st.sidebar:
         st.text_area("System message", key="system_message", value="")
-        chatbot.temperature = st.slider("Temperature", min_value=0.0, max_value=2.0, value=1.0, step=0.05)
+        st.session_state.chatbot.temperature = st.slider("Temperature", min_value=0.0, max_value=2.0, value=1.0, step=0.05)
         st.button("Reset chat", on_click=lambda: st.session_state.pop("messages", None), type="primary", use_container_width=True)
         regenerate = st.button("Regenerate response", on_click=lambda: st.session_state.messages.pop(), use_container_width=True)
         st.button("Delete last", on_click=lambda: st.session_state.messages.pop(), use_container_width=True)
