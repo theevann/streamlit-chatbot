@@ -17,6 +17,7 @@ def encode_image(image_path):
         
 
 def generate_response():
+    
     # Display bot message in chat message container
     with st.chat_message("assistant"):
         placeholder = st.empty()
@@ -28,10 +29,11 @@ def generate_response():
     if st.session_state.system_message != "":
         messages = [SystemMessage(content=st.session_state.system_message)] + messages
 
+    st.session_state.cost = st.session_state.get("cost", 0) + estimate_cost(messages)
+    
     message = AIMessage(content=[full_response])
     st.session_state.messages.append(message)
     
-    st.session_state.cost = st.session_state.get("cost", 0) + estimate_cost(messages)
 
     try:
         for response in st.session_state.chatbot.stream(messages):
@@ -39,6 +41,7 @@ def generate_response():
             message.content = [full_response]
             placeholder.markdown(full_response["text"] + "▌")
         placeholder.markdown(full_response["text"])
+        st.session_state.cost = st.session_state.get("cost", 0) + estimate_cost([message]) * 3
     except openai.AuthenticationError as e:
         st.error("Invalid OpenAI API key.")
 
@@ -77,7 +80,7 @@ def estimate_cost(messages):
     for message in messages:
         if message.content[0]["type"] == "text":
             num_tokens = num_tokens_from_string(message.content[0]["text"], "cl100k_base")
-            cost += num_tokens * multiplier * (1 if get_role(message) != "assistant" else 3) * 1e-6
+            cost += num_tokens * multiplier * 1e-6
         elif message.content[0]["type"] == "image_url":
             cost += 300 * 1e-6
             
