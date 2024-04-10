@@ -68,7 +68,7 @@ def st_chatbot(openai_api_key):
     if ("chatbot" not in st.session_state) or (openai_api_key != st.session_state.chatbot.openai_api_key):
         st.session_state.chatbot = ChatOpenAI(max_tokens=2048, openai_api_key=openai_api_key)
                 
-    openai_models = st.sidebar.radio("Select OpenAI model:", ["gpt-3.5-turbo", "gpt-4-turbo-preview", "gpt-4-1106-preview", "gpt-4-vision-preview"], index=1)
+    openai_models = st.sidebar.radio("Select OpenAI model:", ["gpt-3.5-turbo", "gpt-4-turbo"], index=1)
     st.session_state.chatbot.model_name = openai_models
 
     # Initialize chat history
@@ -84,7 +84,7 @@ def st_chatbot(openai_api_key):
         st.button("Delete last", on_click=lambda: st.session_state.messages.pop(), use_container_width=True)
         stop = st.button("Stop", use_container_width=True)
 
-        if "vision" in openai_models:
+        if "gpt-4" in openai_models:
             with st.form("my-form", clear_on_submit=True):
                 uploaded_image = st.file_uploader("Upload image", type=["png", "jpg", "jpeg"], key="image")
                 submitted = st.form_submit_button("UPLOAD!")
