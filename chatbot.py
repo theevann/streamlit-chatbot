@@ -27,7 +27,7 @@ def generate_response():
     messages = st.session_state.messages
 
     if st.session_state.system_message != "":
-        messages = [SystemMessage(content=[st.session_state.system_message])] + messages
+        messages = [SystemMessage(content=[{ "type": "text", "text": st.session_state.system_message }])] + messages
 
     st.session_state.cost = st.session_state.get("cost", 0) + estimate_cost(messages)
     
