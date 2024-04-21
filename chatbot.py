@@ -3,12 +3,46 @@ import base64
 import openai
 import streamlit as st
 import tiktoken
-from langchain.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
+from langchain_groq import ChatGroq
 from langchain.schema import (
     AIMessage,
     HumanMessage,
     SystemMessage
 )
+
+
+model_costs_multiplier = {
+    "gpt-3.5-turbo": 0.5,
+    "gpt-4-turbo": 10,
+    "llama3-8b-8192": 0,
+    "llama3-70b-8192": 0,
+}
+
+class ChatBot():
+    def __init__(self, api_key, model_name):
+        if api_key == st.secrets["PASSWORD"]:
+            if "gpt" in model_name:
+                api_key = st.secrets["OPENAI_API_KEY"]
+            elif "llama" in model_name:
+                api_key = st.secrets["GROQ_API_KEY"]
+        
+        self.model_name = model_name
+        
+        if "gpt" in model_name:
+            self.chatbot = ChatOpenAI(max_tokens=2048, openai_api_key=api_key, model_name=model_name)
+        elif "llama" in model_name:
+            self.chatbot = ChatGroq(temperature=0, api_key=api_key, model_name=model_name)
+
+    def stream(self, messages):
+        if "gpt" in self.model_name:
+            messages = messages
+        elif "llama" in self.model_name:
+            messages = [{"role": get_role(message), "content": message.content[0]["text"]} for message in messages]
+        
+        for response in self.chatbot.stream(messages):
+            yield response
+
 
 
 def encode_image(image_path):
@@ -63,19 +97,18 @@ def print_message(lc_message):
             else:
                 st.image(lc_message.content[0]["image_url"]["url"])
 
+
 def num_tokens_from_string(string: str, encoding_name: str) -> int:
     """Returns the number of tokens in a text string."""
     encoding = tiktoken.get_encoding(encoding_name)
     num_tokens = len(encoding.encode(string))
     return num_tokens
 
+
 def estimate_cost(messages):
     cost = 0
     
-    multiplier = {
-        "gpt-3.5-turbo": 0.5,
-        "gpt-4-turbo": 10
-    }[st.session_state.chatbot.model_name] # Per 1M tokens
+    multiplier = model_costs_multiplier[st.session_state.chatbot.model_name] # Per 1M tokens
     
     for message in messages:
         if message.content[0]["type"] == "text":
@@ -87,19 +120,15 @@ def estimate_cost(messages):
     return cost
 
 
-def st_chatbot(openai_api_key):
-    if openai_api_key == st.secrets["PASSWORD"]:
-        openai_api_key = st.secrets["OPENAI_API_KEY"]
-    elif openai_api_key == "":
-        st.warning("Please enter your OpenAI API key.")
-        st.stop()
-        
-    if ("chatbot" not in st.session_state) or (openai_api_key != st.session_state.chatbot.openai_api_key):
-        st.session_state.chatbot = ChatOpenAI(max_tokens=2048, openai_api_key=openai_api_key)
-
-    openai_models = st.sidebar.radio("Select OpenAI model:", ["gpt-3.5-turbo", "gpt-4-turbo"], index=1)
-    st.session_state.chatbot.model_name = openai_models
-
+def st_chatbot(api_key):
+    
+    model_name = st.sidebar.radio("Select model:", model_costs_multiplier.keys(), index=3)
+    
+    if (model_name != st.session_state.get("model_name", "")) or (api_key != st.session_state.get("api_key", "")):
+        st.session_state.api_key = api_key
+        st.session_state.model_name = model_name
+        st.session_state.chatbot = ChatBot(api_key=api_key, model_name=model_name)
+    
     # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -113,7 +142,7 @@ def st_chatbot(openai_api_key):
         st.button("Delete last", on_click=lambda: st.session_state.messages.pop(), use_container_width=True)
         stop = st.button("Stop", use_container_width=True)
 
-        if "gpt-4" in openai_models:
+        if "gpt-4" in model_name:
             with st.form("my-form", clear_on_submit=True):
                 uploaded_image = st.file_uploader("Upload image", type=["png", "jpg", "jpeg"], key="image")
                 submitted = st.form_submit_button("UPLOAD!")
@@ -130,7 +159,7 @@ def st_chatbot(openai_api_key):
                 message = HumanMessage(content=content)
                 st.session_state.messages.append(message)
 
-    st.title("ChatGPT UI")
+    st.title(f"Chatbot UI  (*{model_name}*)")
     
     container = st.container()
     # container = st.container(height=550, border=None)

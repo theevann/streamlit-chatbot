@@ -12,9 +12,6 @@ prompt_enforcer = "I NEED to test how the tool works with extremely simple promp
 def st_dall_e(openai_api_key):
     if openai_api_key == st.secrets["PASSWORD"]:
         openai_api_key = st.secrets["OPENAI_API_KEY"]
-    elif openai_api_key == "":
-        st.warning("Please enter your OpenAI API key.")
-        st.stop()
     
     client.api_key = openai_api_key
     
