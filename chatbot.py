@@ -15,6 +15,7 @@ from langchain.schema import (
 model_costs_multiplier = {
     "gpt-3.5-turbo": 0.5,
     "gpt-4-turbo": 10,
+    "gpt-4o": 5,
     "llama3-8b-8192": 0,
     "llama3-70b-8192": 0,
 }
