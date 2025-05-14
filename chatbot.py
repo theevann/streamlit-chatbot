@@ -18,6 +18,7 @@ model_costs_multiplier = {
     "gpt-4.1": 0,
     "o1-mini": 0,
     "o3-mini": 0,
+    "o4-mini": 0,
     "o3": 0,
     "llama3-8b-8192": 0,
     "llama3-70b-8192": 0,
