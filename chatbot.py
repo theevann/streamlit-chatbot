@@ -33,10 +33,10 @@ class ChatBot():
         
         self.model_name = model_name
         
-        if "gpt" in model_name:
-            self.chatbot = ChatOpenAI(max_tokens=2048, openai_api_key=api_key, model_name=model_name)
-        elif "llama" in model_name:
+        if "llama" in model_name:
             self.chatbot = ChatGroq(temperature=0, api_key=api_key, model_name=model_name)
+        else:
+            self.chatbot = ChatOpenAI(max_tokens=2048, openai_api_key=api_key, model_name=model_name)
 
     def stream(self, messages):
         if "gpt" in self.model_name:
