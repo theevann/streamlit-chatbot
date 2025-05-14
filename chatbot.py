@@ -13,10 +13,12 @@ from langchain.schema import (
 
 
 model_costs_multiplier = {
-    "gpt-3.5-turbo": 0.5,
-    "gpt-4-turbo": 10,
-    "gpt-4o-mini": 0.2,
-    "gpt-4o": 5,
+    "gpt-4o-mini": 0,
+    "gpt-4o": 0,
+    "gpt-4.1": 0,
+    "o1-mini": 0,
+    "o3-mini": 0,
+    "o3": 0,
     "llama3-8b-8192": 0,
     "llama3-70b-8192": 0,
 }
