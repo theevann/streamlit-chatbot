@@ -36,7 +36,7 @@ class ChatBot():
         if "llama" in model_name:
             self.chatbot = ChatGroq(temperature=0, api_key=api_key, model_name=model_name)
         elif model_name[0] == 'o':
-            self.chatbot = ChatOpenAI(openai_api_key=api_key, model_name=model_name)
+            self.chatbot = ChatOpenAI(temperature=1, openai_api_key=api_key, model_name=model_name)
         else:
             self.chatbot = ChatOpenAI(max_tokens=2048, openai_api_key=api_key, model_name=model_name)
 
