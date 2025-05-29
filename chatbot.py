@@ -27,10 +27,10 @@ model_costs_multiplier = {
 class ChatBot():
     def __init__(self, api_key, model_name):
         if api_key == st.secrets["PASSWORD"]:
-            if "gpt" in model_name:
-                api_key = st.secrets["OPENAI_API_KEY"]
-            elif "llama" in model_name:
+            if "llama" in model_name:
                 api_key = st.secrets["GROQ_API_KEY"]
+            else:
+                api_key = st.secrets["OPENAI_API_KEY"]
         
         self.model_name = model_name
         
